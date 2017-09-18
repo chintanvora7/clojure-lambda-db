@@ -3,13 +3,13 @@
             [honeysql.core :as sql]
             [honeysql.helpers :as ql]))
 
-(defn db-spec [password]
+(defn db-spec [password min-pool-size max-pool-size]
   {:subprotocol "postgresql"
    :subname "//hackathon.crojfd1bljsr.us-east-1.rds.amazonaws.com:5432/hackathon"
    :user "hackathon"
    :password password
-   :min-pool-size 3
-   :max-pool-size 5
+   :min-pool-size min-pool-size
+   :max-pool-size max-pool-size
    })
 
 (defn fn-get-connection-info [pg-db-conn]

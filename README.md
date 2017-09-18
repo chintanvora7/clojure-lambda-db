@@ -49,6 +49,19 @@ db_password - "password here"
 
 ```
 
+### Lambda Setup - DB Pool
+
+```
+Database Pool size needs to be passed as an encrypted environment variable.
+Make sure you pass numbers (Int) and not string!
+Below are the steps:
+
+Open AWS Lambda GUI -> Code -> Environment Variables
+min_pool_size - 5
+max_pool_size - 10
+
+```
+
 
 ### Test Execution
 

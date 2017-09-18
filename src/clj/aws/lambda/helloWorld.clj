@@ -4,7 +4,8 @@
             [clojure.java.io :as io]
             [jdbc.pool.c3p0 :as pool]
 
-            [aws.lambda.db :as db])
+            [aws.lambda.db :as db]
+            [aws.lambda.env :as env])
   (:gen-class
    :init init
    :constructors {[] []}   
@@ -19,16 +20,6 @@
       (s/lower-case)
       (keyword)))
 
-(defn fn-get-key-from-env [key]
-  "Dependency: Environment Variable set in Lambda UI -> key should be db-password
-   Description: Given a Lambda environment with env variable (db-password) set returns password
-                else returns empty string
-   Note: Please send password in empty string below in dev mode. Do not publish pwd to git!"
-  (let [password (System/getenv key)]
-    (if (nil? password)
-      ""
-      password)))
-
 ;; init gets a DB-Password set in Lambda Environment and Creates a DB Pool
 ;; Pool adds efficiency by reusing connections in container init
 ;; Please prolong container life by setting a cloudwatch so you don't recreate container often
@@ -38,9 +29,17 @@
 (defn -init
   ;; matches empty constructor
   ([][[]
-      (let [db-pass (fn-get-key-from-env "db_password")
-            db-spec (db/db-spec db-pass)]
-        (do (println "Lambda Setup.")
+      (let [db-pass (env/fn-get-value-from-env "db_password")
+            min-pool-size (-> (env/fn-get-value-from-env "min_pool_size")
+                              Integer/parseInt
+                              long)
+            max-pool-size (-> (env/fn-get-value-from-env "max_pool_size")
+                              Integer/parseInt
+                              long)
+            db-spec (db/db-spec db-pass min-pool-size max-pool-size)]
+        (do (prn "Lambda Container Setup")
+            (prn "Min Pool Size: " min-pool-size)
+            (prn "Max Pool Size: " max-pool-size)
             ;; Create a DB Pool Object
             (swap! db-conn (constantly (pool/make-datasource-spec db-spec)))
             ;; Create a Test Query which initiates a pool
@@ -49,10 +48,11 @@
 (defn handle-request [request-map]
   (let [sz-input (prn-str request-map)]
   (do
-    (println "Process Request"))
+    (println "Process Request: " request-map))
   ;; some response
   {:return 0
    :input request-map
+   :pool-size (System/getenv "min_pool_size")
    :db-connections (db/fn-get-connection-ips @db-conn)
    :message "Hello World"}))
 

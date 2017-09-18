@@ -19,13 +19,32 @@
       (s/lower-case)
       (keyword)))
 
+(defn fn-get-key-from-env [key]
+  "Dependency: Environment Variable set in Lambda UI -> key should be db-password
+   Description: Given a Lambda environment with env variable (db-password) set returns password
+                else returns empty string
+   Note: Please send password in empty string below in dev mode. Do not publish pwd to git!"
+  (let [password (System/getenv key)]
+    (if (nil? password)
+      ""
+      password)))
+
+;; init gets a DB-Password set in Lambda Environment and Creates a DB Pool
+;; Pool adds efficiency by reusing connections in container init
+;; Please prolong container life by setting a cloudwatch so you don't recreate container often
+;; DB Pool is very efficient in small traffic bursts where less containers are spawned
+;; Taking performance hit once is better than opening a new connection for every request
+
 (defn -init
   ;; matches empty constructor
-  ([][[] (do (println "Lambda Setup.")
-             ;; Create a DB Pool Object
-             (swap! db-conn (constantly (pool/make-datasource-spec db/db-spec)))
-             ;; Create a Test Query which initiates a pool
-             (db/fn-test-query @db-conn))]))
+  ([][[]
+      (let [db-pass (fn-get-key-from-env "db_password")
+            db-spec (db/db-spec db-pass)]
+        (do (println "Lambda Setup.")
+            ;; Create a DB Pool Object
+            (swap! db-conn (constantly (pool/make-datasource-spec db-spec)))
+            ;; Create a Test Query which initiates a pool
+            (db/fn-test-query @db-conn)))]))
 
 (defn handle-request [request-map]
   (let [sz-input (prn-str request-map)]

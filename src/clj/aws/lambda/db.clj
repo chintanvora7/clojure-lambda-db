@@ -3,11 +3,11 @@
             [honeysql.core :as sql]
             [honeysql.helpers :as ql]))
 
-(def db-spec
+(defn db-spec [password]
   {:subprotocol "postgresql"
    :subname "//hackathon.crojfd1bljsr.us-east-1.rds.amazonaws.com:5432/hackathon"
    :user "hackathon"
-   :password ""
+   :password password
    :min-pool-size 3
    :max-pool-size 5
    })

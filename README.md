@@ -39,6 +39,16 @@ or
 Open AWS Lambda GUI -> Upload the Jar (Runtime: Java) -> Set Handler as aws.lambda.helloWorld -> Set other params as required -> Save -> Test (Pass any Json & it will return the Json along with metadata as output)
 ```
 
+### Lambda Setup - Database Password
+
+```
+Database Password needs to be passed as an encrypted environment variable. Below are the steps:
+
+Open AWS Lambda GUI -> Code -> Environment Variables
+db_password - "password here"
+
+```
+
 
 ### Test Execution
 
